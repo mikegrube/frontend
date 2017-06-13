@@ -1,0 +1,24 @@
+CreateProduct,Shirt,A nice shirt
+UpdateProductPrice,P1,18.0
+AdjustInventory,P1,15
+ShowProduct,P1
+CreateProduct,Pants,Cool pants
+AdjustInventory,P2,11
+UpdateProductPrice,P2,34.2
+ShowProduct,P2
+CreateMarket,Amazon
+CreateOffer,M1,Special
+AddProductToOffer,O1,P1
+AddProductToOffer,O1,P2
+ShowOffer,O1
+UpdateOfferProductPrice,O1,P1,19.0
+ShowOffer,O1
+ShowPrices
+CreateBuyer,John Doe
+CreateBuyer,Mary Smith
+PurchaseFromOffer,O1,P1,2,B1
+ShowOffer,O1
+PurchaseFromOffer,O1,P2,5,B2
+ShowOffer,O1
+PurchaseFromOffer,O1,P1,14,B1
+ShowOffer,O1
