@@ -36,13 +36,14 @@ public class ProductPriceProjector extends AbstractProjector {
 	void timerPosting(Object obj) {
 
 		EventList eventList = (EventList) obj;
-		ArrayList<AbstractEvent> events = eventList.getEvents();
-		for (AbstractEvent event : events) {
-			ProductPriceUpdated ppu = (ProductPriceUpdated) event;
-			prices.put(ppu.getKey(), Double.parseDouble(ppu.getAmount()));
-			nextOffset++;
+		if (eventList.getLastOffsetRead() >= 0) {
+			ArrayList<AbstractEvent> events = eventList.getEvents();
+			for (AbstractEvent event : events) {
+				ProductPriceUpdated ppu = (ProductPriceUpdated) event;
+				prices.put(ppu.getKey(), Double.parseDouble(ppu.getAmount()));
+			}
+			nextOffset = eventList.getLastOffsetRead() + 1;
 		}
-
 	}
 
 	public static Props props() {

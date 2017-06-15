@@ -124,7 +124,7 @@ public abstract class AbstractHandler extends AbstractActor {
 			eventList = (EventList) Await.result(future, timeout.duration());
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
-			eventList = new EventList("", "", 0, new ArrayList<AbstractEvent>());
+			eventList = new EventList("", "", 0, new ArrayList<AbstractEvent>(), 0);
 		}
 		ArrayList<AbstractEvent> events = eventList.getEvents();
 		replayEvents(a, events);

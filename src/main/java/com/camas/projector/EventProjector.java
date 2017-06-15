@@ -36,10 +36,12 @@ public class EventProjector extends AbstractProjector {
 	void timerPosting(Object obj) {
 
 		EventList eventList = (EventList) obj;
-		ArrayList<AbstractEvent> events = eventList.getEvents();
-		for (AbstractEvent event : events) {
-			strungEvents.add(event.toString());
-			nextOffset++;
+		if (eventList.getLastOffsetRead() >= 0) {
+			ArrayList<AbstractEvent> events = eventList.getEvents();
+			for (AbstractEvent event : events) {
+				strungEvents.add(event.toString());
+			}
+			nextOffset = eventList.getLastOffsetRead() + 1;
 		}
 
 	}

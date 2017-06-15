@@ -9,12 +9,14 @@ public class EventList {
 	String id;
 	int offset;
 	ArrayList<AbstractEvent> events;
+	int lastOffsetRead;
 	
-	public EventList(String type, String id, int offset, ArrayList<AbstractEvent> events) {
+	public EventList(String type, String id, int offset, ArrayList<AbstractEvent> events, int lastOffsetRead) {
 		this.type = type;
 		this.id = id;
 		this.offset = offset;
 		this.events = events;
+		this.lastOffsetRead =lastOffsetRead;
 	}
 	
 	public String getType() {
@@ -31,6 +33,10 @@ public class EventList {
 
 	public ArrayList<AbstractEvent> getEvents() {
 		return events;
+	}
+	
+	public int getLastOffsetRead() {
+		return lastOffsetRead;
 	}
 	
 }

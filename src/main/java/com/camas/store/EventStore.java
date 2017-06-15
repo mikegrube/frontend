@@ -61,7 +61,7 @@ public class EventStore extends AbstractActor {
 			}
       }
      
-		getSender().tell(new EventList(read.getType(), read.getKey(), read.getOffset(), events), getSelf());
+		getSender().tell(new EventList(read.getType(), read.getKey(), read.getOffset(), events, store.size() - 1), getSelf());
 	}
 	
 }

@@ -37,27 +37,28 @@ public class BuyerStatusReactor extends AbstractReactor {
 	void timerPosting(Object obj) {
 
 		EventList eventList = (EventList) obj;
-		ArrayList<AbstractEvent> events = eventList.getEvents();
-		for (AbstractEvent event : events) {
-			ProductPurchased pp = (ProductPurchased) event;
-			String buyerId = pp.getBuyerId();
-			Double prevTotal = purchases.get(buyerId);
-			if (prevTotal == null) {
-				prevTotal = 0.0;
+		if (eventList.getLastOffsetRead() >= 0) {
+			ArrayList<AbstractEvent> events = eventList.getEvents();
+			for (AbstractEvent event : events) {
+				ProductPurchased pp = (ProductPurchased) event;
+				String buyerId = pp.getBuyerId();
+				Double prevTotal = purchases.get(buyerId);
+				if (prevTotal == null) {
+					prevTotal = 0.0;
+				}
+				String prevStatus = getStatus(prevTotal);
+				int quantity = Integer.parseInt(pp.getQuantity());
+				double price = Double.parseDouble(pp.getPrice());
+				double total = prevTotal + (quantity * price);
+				purchases.put(buyerId, total);
+				String status = getStatus(total);
+				//If status has changed, post the new status
+				if (!status.equals(prevStatus)) {
+					eventStore.tell(new Put(new BuyerStatusChanged(buyerId, status)), getSelf());
+				}
 			}
-			String prevStatus = getStatus(prevTotal);
-			int quantity = Integer.parseInt(pp.getQuantity());
-			double price = Double.parseDouble(pp.getPrice());
-			double total = prevTotal + (quantity * price);
-			purchases.put(buyerId, total);
-			String status = getStatus(total);
-			//If status has changed, post the new status
-			if (!status.equals(prevStatus)) {
-				eventStore.tell(new Put(new BuyerStatusChanged(buyerId, status)), getSelf());
-			}
-			nextOffset++;
+			nextOffset = eventList.getLastOffsetRead() + 1;
 		}
-
 	}
 	
 	public static boolean isBetween(double x, double lower, double upper) {
