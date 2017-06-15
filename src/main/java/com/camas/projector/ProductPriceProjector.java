@@ -78,7 +78,7 @@ public class ProductPriceProjector extends AbstractProjector {
 
 	log.info("Price for " + id + ":");
 	log.info("  " + prices.get(id));
-	log.info("End pricing...");
+	log.info("End pricing");
 	}
 
 }

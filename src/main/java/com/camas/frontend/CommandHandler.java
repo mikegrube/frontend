@@ -6,6 +6,7 @@ import com.camas.event.AbstractEvent;
 
 import com.camas.projector.EventProjector;
 import com.camas.projector.ProductPriceProjector;
+import com.camas.projector.BuyerStatusProjector;
 
 import com.camas.reactor.BuyerStatusReactor;
 
@@ -39,8 +40,8 @@ public class CommandHandler extends AbstractActor {
 		"CreateOffer", "UpdateOffer", "AddProductToOffer", "RemoveProductFromOffer", "UpdateOfferProductPrice", "AdjustOfferProductInventory", "DropOffer", "ShowOffer",
 		"PurchaseFromOffer",
 		"ShowEvents",
-		"ShowPrices",
-		"ShowPrice"
+		"ShowPrices", "ShowPrice",
+		"ShowStatuses", "ShowStatus"
 	 };
 
 	ActorRef productHandler;
@@ -50,6 +51,7 @@ public class CommandHandler extends AbstractActor {
 	ActorRef eventStore;
 	ActorRef eventProjector;
 	ActorRef productPriceProjector;
+	ActorRef buyerStatusProjector;
 	ActorRef buyerStatusReactor;
 
 	public CommandHandler() {
@@ -69,6 +71,8 @@ public class CommandHandler extends AbstractActor {
 		eventProjector.tell(actorSet, getSelf());
 		productPriceProjector = getContext().actorOf(ProductPriceProjector.props(), "productPriceProjector-01");
 		productPriceProjector.tell(actorSet, getSelf());
+		buyerStatusProjector = getContext().actorOf(BuyerStatusProjector.props(), "buyerStatusProjector-01");
+		buyerStatusProjector.tell(actorSet, getSelf());
 
 		buyerStatusReactor = getContext().actorOf(BuyerStatusReactor.props(), "buyerstatus-01");
 		buyerStatusReactor.tell(actorSet, getSelf());
@@ -152,7 +156,12 @@ public class CommandHandler extends AbstractActor {
 				case "ShowPrices":
 					productPriceProjector.tell(new Command(head, tail), getSelf());
 					result = "Produce price projector command processed";
-				break;
+					break;
+				case "ShowStatus":
+				case "ShowStatuses":
+					buyerStatusProjector.tell(new Command(head, tail), getSelf());
+					result = "Buyer status projector command processed";
+					break;
 				default:
 					result = "The command " + head + " has not yet been implemented.";
 					break;

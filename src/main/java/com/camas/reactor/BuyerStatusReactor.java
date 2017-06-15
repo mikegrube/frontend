@@ -43,10 +43,13 @@ public class BuyerStatusReactor extends AbstractReactor {
 				ProductPurchased pp = (ProductPurchased) event;
 				String buyerId = pp.getBuyerId();
 				Double prevTotal = purchases.get(buyerId);
+				String prevStatus;
 				if (prevTotal == null) {
 					prevTotal = 0.0;
+					prevStatus = "None";
+				} else {
+					prevStatus = getStatus(prevTotal);
 				}
-				String prevStatus = getStatus(prevTotal);
 				int quantity = Integer.parseInt(pp.getQuantity());
 				double price = Double.parseDouble(pp.getPrice());
 				double total = prevTotal + (quantity * price);
