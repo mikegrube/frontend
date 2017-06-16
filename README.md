@@ -15,3 +15,6 @@ The Projectors are simple examples of targeted query stores which track particul
 The one Reactor is an example of events feeding other events; in this case, Buyers' purchases automatically updating their
 statuses.
 
+Run it by 'gradle run'
+You can process some typical commands by running the command "ProcessFile", which runs a set of commands from the text file
+"commands.txt".
