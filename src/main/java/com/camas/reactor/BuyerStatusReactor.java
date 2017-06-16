@@ -20,19 +20,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.io.IOException;
 
+//The BuyerStatusReactor takes action when a Buyer makes a purchase, updating the Buyer's status
 public class BuyerStatusReactor extends AbstractReactor {
 	
+	//Fake storage
 	HashMap<String, Double> purchases = new HashMap<>();
 
 	public BuyerStatusReactor() {
 		super("BuyerStatusReactor", 0, 5);
 	}
 
+	//The reactor needs to know about any purchases
 	@Override
 	Object getTimerCommand() {
 		return new Read("ProductPurchased", "ANY", nextOffset);
 	}
 
+	//For a purchase event, update the total of purchases and determine the Buyer's new status
 	@Override
 	void timerPosting(Object obj) {
 
@@ -42,6 +46,7 @@ public class BuyerStatusReactor extends AbstractReactor {
 			for (AbstractEvent event : events) {
 				ProductPurchased pp = (ProductPurchased) event;
 				String buyerId = pp.getBuyerId();
+				//What was the Buyer's previous status?
 				Double prevTotal = purchases.get(buyerId);
 				String prevStatus;
 				if (prevTotal == null) {
@@ -54,6 +59,7 @@ public class BuyerStatusReactor extends AbstractReactor {
 				double price = Double.parseDouble(pp.getPrice());
 				double total = prevTotal + (quantity * price);
 				purchases.put(buyerId, total);
+				//What is the Buyer's new status
 				String status = getStatus(total);
 				//If status has changed, post the new status
 				if (!status.equals(prevStatus)) {
@@ -68,6 +74,7 @@ public class BuyerStatusReactor extends AbstractReactor {
 		return lower <= x && x < upper;
 	}
 
+	//Determine status based on total purchases
 	String getStatus(double amount) {
 		String stat;
 		if (isBetween(amount, 0.0, 100.0)) {

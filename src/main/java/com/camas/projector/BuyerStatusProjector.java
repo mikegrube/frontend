@@ -19,19 +19,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.io.IOException;
 
+//The BuyerStatusProjector tracks the current status of existing buyers
 public class BuyerStatusProjector extends AbstractProjector {
 
+	//Fake storage; a projector would typically have its own appropriate persistence 
 	HashMap<String, String> statuses = new HashMap<>();
 
 	public BuyerStatusProjector() {
 		super("BuyerStatusProjector", 0, 5);
 	}
 
+	//We want to know about any changes in a Buyer's status
 	@Override
 	Object getTimerCommand() {
 		return new Read("BuyerStatusChanged", "ANY", nextOffset);
 	}
 
+	//For each change in status, save it
 	@Override
 	void timerPosting(Object obj) {
 
@@ -50,6 +54,7 @@ public class BuyerStatusProjector extends AbstractProjector {
 		return Props.create(BuyerStatusProjector.class);
 	}
 
+	//Commands to see current Buyer status
 	@Override
 	void onCommand(Command cmd) {
 
@@ -63,6 +68,7 @@ public class BuyerStatusProjector extends AbstractProjector {
 		}
 	}
 
+	//Show current statuses for all Buyers
 	private void onShowStatuses() {
 
 		log.info("Current Buyer statuses");
@@ -74,6 +80,7 @@ public class BuyerStatusProjector extends AbstractProjector {
 		log.info("End status");
 	}
 
+	//Show current status for a soecific Buyer
 	private void onShowStatus(String id) {
 
 		log.info("Status for " + id + ":");

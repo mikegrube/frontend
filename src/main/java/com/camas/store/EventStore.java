@@ -15,13 +15,15 @@ import akka.actor.ActorRef;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
+//The EventStore manages all events
 public class EventStore extends AbstractActor {
    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
    
+   //Fake storage
    static ArrayList<AbstractEvent> store = new ArrayList<>();
 
    public EventStore() {
-      //TODO: Re-establish the previous values in the store
+      //TODO: Re-establish the previous values in the store if we're going to handle failure
    }
 
    public static Props props() {
@@ -46,11 +48,13 @@ public class EventStore extends AbstractActor {
          .build();
    }
 	
+   //Store an event
 	private void onPut(Put put) {
 		//log.info("EventStore saving: " + put.event);
 		store.add(put.getEvent());
 	}
 
+	//Return a list of events based on filtering by type of event or specific aggregate, from a starting offset
 	private void onRead(Read read) {
       ArrayList<AbstractEvent> events = new ArrayList<>();
 

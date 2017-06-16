@@ -1,5 +1,6 @@
 package com.camas.event;
 
+//The BuyerStatusChanged event represents the successful change of a Buyer's status
 public class BuyerStatusChanged extends AbstractEvent {
 
 	String status;

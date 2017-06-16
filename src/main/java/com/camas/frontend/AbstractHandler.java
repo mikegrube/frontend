@@ -27,18 +27,20 @@ import scala.concurrent.Future;
 
 import java.util.ArrayList;
 
+//AbstractHandler contains functions common to all command handlers
 public abstract class AbstractHandler extends AbstractActor {
 	final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
+	//In case we have to talk to a sibling
 	ActorRef eventStore;
 	ActorRef buyerRef;
 	ActorRef marketRef;
 	ActorRef offerRef;
 	ActorRef productRef;
 	
-	int highestId = 0;
-	String name;
-	String createCommand;
+	int highestId = 0;			//This maintains the highest id used for the specific aggregate
+	String name;				//The name of the command handler
+	String createCommand;		//The name of the command used to create an instance of the aggregate (for finding highest id)
 
 	public AbstractHandler(String name, String createCommand) {
 		this.name = name;
@@ -63,6 +65,7 @@ public abstract class AbstractHandler extends AbstractActor {
 		this.name = name;
 	}
 
+	//This actor accepts ActorSet for setup, Command for commands, and Status if a sibling needs to know about an instance
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
@@ -72,6 +75,7 @@ public abstract class AbstractHandler extends AbstractActor {
 			.build();
 	}
 
+	//Identify the siblings
 	private void onActorSet(ActorSet set) {
 		eventStore = set.getEventStore();
 		buyerRef = set.getBuyerRef();
@@ -82,8 +86,8 @@ public abstract class AbstractHandler extends AbstractActor {
 		populate();
 	}
 
+	//Re-establish the highest used id
 	private void populate() {
-		//Re-establish the highest used id
 		EventList eventList = (EventList) request(eventStore, new Read(createCommand, "ANY", 0));
 		if (eventList != null) {
 			ArrayList<AbstractEvent> events = eventList.getEvents();
@@ -96,6 +100,7 @@ public abstract class AbstractHandler extends AbstractActor {
 		}
 	}
 	
+	//A synchronous request to pick up info from a sibling
 	Object request(ActorRef requestee, Object request) {
 		Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
 		Future<Object> future = Patterns.ask(requestee, request, timeout);
@@ -108,14 +113,17 @@ public abstract class AbstractHandler extends AbstractActor {
 		return obj;
 	}
 
+	//What to do for each command
 	//Needs override
 	abstract void onCommand(Command cmd);
 	
+	//Needed if another sibling requires info about an aggregate
 	//May not do anything
 	void onStatus(Status s) {
 		
 	}
 
+	//Given an aggregate id, reconstruct it from past events, using a synchronous call to the event store
 	public void remake(AbstractDomain a, String id) {
 		Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
 		Future<Object> future = Patterns.ask(eventStore, new Read("ANY", id, 0), timeout); 
@@ -130,12 +138,14 @@ public abstract class AbstractHandler extends AbstractActor {
 		replayEvents(a, events);
 	}
 	
+	//Replay a list of events against an aggregate
 	private void replayEvents(AbstractDomain a, ArrayList<AbstractEvent> events) {
 		for (AbstractEvent event : events) {
 			applyEvent(a, event);
 		}
 	}
 
+	//For a given event, apply it to the aggregate
 	//Needs to be overridden
 	abstract void applyEvent(AbstractDomain a, AbstractEvent event);
 	

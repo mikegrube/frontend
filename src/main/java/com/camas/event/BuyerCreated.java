@@ -1,5 +1,6 @@
 package com.camas.event;
 
+//The BuyerCreated event represents the successful command to create a new Buyer
 public class BuyerCreated extends AbstractEvent {
 
 	String name;

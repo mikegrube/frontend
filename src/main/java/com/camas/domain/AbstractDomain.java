@@ -1,9 +1,10 @@
 package com.camas.domain;
 
+//AbstractDomain contains common elements for all domains (aggregates)
 public abstract class AbstractDomain {
 
-	String id;
-	boolean dropped = false;
+	String id;					//The id given an instance at creation
+	boolean dropped = false;	//Whether or not this instance is no longer active
 
 	public AbstractDomain() {
 	}

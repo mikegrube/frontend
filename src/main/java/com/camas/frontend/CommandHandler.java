@@ -30,9 +30,11 @@ import java.util.concurrent.TimeUnit;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 
+//The CommandHandler distributes commands to its actor children
 public class CommandHandler extends AbstractActor {
 	private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
+	//This is a list of all known commands, in code so brittle
 	private String[] commandList = {
 		"CreateProduct", "UpdateProduct", "AdjustInventory", "UpdateProductPrice", "DropProduct", "ShowProduct",
 		"CreateBuyer", "UpdateBuyer", "DropBuyer", "ShowBuyer",
@@ -44,23 +46,30 @@ public class CommandHandler extends AbstractActor {
 		"ShowStatuses", "ShowStatus"
 	 };
 
+	//These are the actors that make up the system, all children of the command handler
+	//Command handlers
 	ActorRef productHandler;
 	ActorRef buyerHandler;
 	ActorRef marketHandler;
 	ActorRef offerHandler;
 	ActorRef eventStore;
+	//Query projectors
 	ActorRef eventProjector;
 	ActorRef productPriceProjector;
 	ActorRef buyerStatusProjector;
+	//Automated reactors
 	ActorRef buyerStatusReactor;
 
+	//Constructor - instantiate the actors
 	public CommandHandler() {
+		//Instantiate
 		eventStore = getContext().actorOf(EventStore.props(), "eventstore-01");
 		productHandler = getContext().actorOf(ProductHandler.props(), "product-01");
 		buyerHandler = getContext().actorOf(BuyerHandler.props(), "buyer-01");
 		marketHandler = getContext().actorOf(MarketHandler.props(), "market-01");
 		offerHandler = getContext().actorOf(OfferHandler.props(), "offer-01");
 
+		//Some of these need to know about their siblings
 		ActorSet actorSet = new ActorSet(buyerHandler, marketHandler, offerHandler, productHandler, eventStore);
 		productHandler.tell(actorSet, getSelf());
 		buyerHandler.tell(actorSet, getSelf());
@@ -92,18 +101,23 @@ public class CommandHandler extends AbstractActor {
 		log.info("Command handler stopped");
 	}
 
+	//Treat Strings coming from the FrontEnd as commands
 	@Override
-		public Receive createReceive() {
+	public Receive createReceive() {
 		return receiveBuilder()
 			.match(String.class, this::onProcess)
 			.build();
 	}
 
+	//Distribute the commands to the appropriate handler
 	private void onProcess(String cmd) {
 
 		String result = "No such command";
 
+		//Command line elements are separated by commas
 		String[] cmdParts = cmd.split(",");
+		
+		//The first element is the command
 		String head = cmdParts[0];
 		String[] tail = tail(cmdParts);
 		//log.info("Head is '" + head + "' and tail is '" + tail + "'");
@@ -171,6 +185,7 @@ public class CommandHandler extends AbstractActor {
 		log.info(result);
 	}
 
+	//Split off the command parameters
 	private String[] tail(String[] in) {
 		String [] out = new String[in.length - 1];
 		for (int i = 1; i < in.length; i++) {

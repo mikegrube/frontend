@@ -3,6 +3,7 @@ package com.camas.message;
 import java.util.ArrayList;
 import com.camas.event.AbstractEvent;
 
+//The EventList message carries a list of events from the store
 public class EventList {
 	
 	String type;

@@ -29,15 +29,16 @@ import java.util.TimerTask;
 
 import java.util.ArrayList;
 
+//Elements common to all reactors
 public abstract class AbstractReactor extends AbstractActor {
 	final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
 	ActorRef eventStore;
 
-	int nextOffset = 0;
-	int frequency = 5;
-	Timer timer;
-	String name;
+	int nextOffset = 0;			//Next offset to be read from the store
+	int frequency = 5;			//Frequency in seconds between requests
+	Timer timer;				//Timer that schedules requests to get events
+	String name;				//Name of this reactor
 
 	public AbstractReactor(String name, int nextOffset, int frequency) {
 		this.name = name;
@@ -58,6 +59,7 @@ public abstract class AbstractReactor extends AbstractActor {
 		setTimer();
 	}
 
+	//Set up a scheduled timer to keep up to date on events
 	private void setTimer() {
 		timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
@@ -77,6 +79,7 @@ public abstract class AbstractReactor extends AbstractActor {
 		}, frequency * 1000, frequency * 1000);
 	}
 
+	//Processing that should occur when events are returned
 	//Needs to be overridden
 	abstract void timerPosting(Object obj);
 
@@ -100,17 +103,4 @@ public abstract class AbstractReactor extends AbstractActor {
 	private void onActorSet(ActorSet set) {
 		eventStore = set.getEventStore();
 	}
-	/*
-	Object request(ActorRef requestee, Object request) {
-		Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
-		Future<Object> future = Patterns.ask(requestee, request, timeout);
-		Object obj;
-		try {
-			obj = Await.result(future, timeout.duration());
-		} catch (Exception e) {
-			obj = null;
-		}
-		return obj;
-	}
-	*/
 }

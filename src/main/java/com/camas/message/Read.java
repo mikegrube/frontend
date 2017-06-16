@@ -1,5 +1,6 @@
 package com.camas.message;
 
+//The Read message carries the request for a filtered list of events to the store
 public class Read {
 
 	String type;

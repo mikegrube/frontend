@@ -1,5 +1,6 @@
 package com.camas.message;
 
+//The Command message carries a command
 public class Command {
 	
 	String command;

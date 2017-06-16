@@ -29,15 +29,16 @@ import java.util.TimerTask;
 
 import java.util.ArrayList;
 
+//AbstractProjector contains elements common to projectors
 public abstract class AbstractProjector extends AbstractActor {
 	final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
 	ActorRef eventStore;
 
-	int nextOffset = 0;
-	int frequency = 5;
-	Timer timer;
-	String name;
+	int nextOffset = 0;			//The next offset not yet read by this projector
+	int frequency = 5;			//The frequency in seconds for requesting updates
+	Timer timer;				//The timer that schedules update requests
+	String name;				//The nme of this projector
 
 	public AbstractProjector(String name, int nextOffset, int frequency) {
 		this.name = name;
@@ -49,7 +50,8 @@ public abstract class AbstractProjector extends AbstractActor {
 		return Props.create(AbstractProjector.class);
 	}
 
-	//Need to be overridden
+	//The request to be made when the timer fires
+	//Needs to be overridden
 	abstract Object getTimerCommand();
 
 	@Override
@@ -58,6 +60,7 @@ public abstract class AbstractProjector extends AbstractActor {
 		setTimer();
 	}
 
+	//Set up the timer to make update requests to the store
 	private void setTimer() {
 		timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
@@ -77,6 +80,7 @@ public abstract class AbstractProjector extends AbstractActor {
 		}, frequency * 1000, frequency * 1000);
 	}
 
+	//Process the returned events after a timer request
 	//Needs to be overridden
 	abstract void timerPosting(Object obj);
 
@@ -101,19 +105,7 @@ public abstract class AbstractProjector extends AbstractActor {
 	private void onActorSet(ActorSet set) {
 		eventStore = set.getEventStore();
 	}
-	/*
-	Object request(ActorRef requestee, Object request) {
-		Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
-		Future<Object> future = Patterns.ask(requestee, request, timeout);
-		Object obj;
-		try {
-			obj = Await.result(future, timeout.duration());
-		} catch (Exception e) {
-			obj = null;
-		}
-		return obj;
-	}
-	*/
+
 	//Needs override
 	abstract void onCommand(Command cmd);
 

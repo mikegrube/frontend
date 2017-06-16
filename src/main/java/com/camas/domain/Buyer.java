@@ -1,5 +1,6 @@
 package com.camas.domain;
 
+//A Buyer is a party that buys Products
 public class Buyer extends AbstractDomain {
 
 	String name;
@@ -16,15 +17,18 @@ public class Buyer extends AbstractDomain {
 
 	// ===== Commands
 
+	//Populate a new instance if valid
 	public boolean create(String id, String name, boolean replaying) {
 		boolean res = true;
 
+		//If we're rebuilding this instance, we don't need to validate
 		if (!replaying) {
 			if (!nameExists(name)) {
 				res = false;
 			}
 		}
 
+		//Apply the change if valid
 		if (res) {
 			setId(id);
 			this.name = name;
@@ -32,16 +36,18 @@ public class Buyer extends AbstractDomain {
 
 		return res;
 	}
-
+	//Update the instance if valid
 	public boolean update(String name, boolean replaying) {
 		boolean res = true;
 
+		//If we're rebuilding this instance, we don't need to validate
 		if (!replaying) {
 			if (!nameExists(name)) {
 				res = false;
 			}
 		}
 
+		//Apply the change if valid
 		if (res) {
 			this.name = name;
 		}
@@ -49,9 +55,11 @@ public class Buyer extends AbstractDomain {
 		return res;
 	}
 
+	//Inactivate the instance if valid
 	public boolean drop(boolean replaying) {
 		boolean res = true;
 
+		//If we're rebuilding this instance, we don't need to validate
 		if (!replaying) {
 			//TODO: Figure out why we couldn't drop
 			if (isDropped()) {
@@ -59,6 +67,7 @@ public class Buyer extends AbstractDomain {
 			}
 		}
 
+		//Apply the change if valid
 		if (res) {
 			setDropped();
 		}
@@ -68,6 +77,7 @@ public class Buyer extends AbstractDomain {
 
 	//===== Tests
 
+	//Test that a name exists
 	private boolean nameExists(String name) {
 		return (name != null && name != "");
 	}

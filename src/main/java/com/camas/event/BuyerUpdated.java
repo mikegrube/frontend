@@ -1,5 +1,6 @@
 package com.camas.event;
 
+//The BuyerUpdated event represents the successful command to update an existing Buyer
 public class BuyerUpdated extends AbstractEvent {
 
 	String name;
