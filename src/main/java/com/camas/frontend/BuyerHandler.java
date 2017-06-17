@@ -73,7 +73,7 @@ public class BuyerHandler extends AbstractHandler {
 
 		//The event is only recognized if the command is valid
 		if (res && nameIsUnique(name)) {
-			actorRefs.get("eventStore").tell(new Put(new BuyerCreated(id, name)), getSelf());
+			eventStore.tell(new Put(new BuyerCreated(id, name)), getSelf());
 		} else {
 			log.warning("Unable to create buyer " + id);
 		}
@@ -95,7 +95,7 @@ public class BuyerHandler extends AbstractHandler {
 		boolean res = a.update(name, false);
 		//The event is only recognized if the command is valid
 		if (res && nameIsUnique(name)) {
-			actorRefs.get("eventStore").tell(new Put(new BuyerUpdated(id, name)), getSelf());
+			eventStore.tell(new Put(new BuyerUpdated(id, name)), getSelf());
 		} else {
 			log.warning("Unable to update buyer " + id);
 		}
@@ -116,7 +116,7 @@ public class BuyerHandler extends AbstractHandler {
 		boolean res = a.drop(false);
 		//The event is only recognized if the command is valid
 		if (res && !inUse(id)) {
-			actorRefs.get("eventStore").tell(new Put(new BuyerDropped(id)), getSelf());
+			eventStore.tell(new Put(new BuyerDropped(id)), getSelf());
 		} else {
 			log.warning("Unable to drop buyer " + id);
 		}

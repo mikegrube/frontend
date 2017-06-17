@@ -13,7 +13,6 @@ import com.camas.reactor.BuyerStatusReactor;
 import com.camas.message.Read;
 import com.camas.message.Command;
 import com.camas.message.EventList;
-import com.camas.message.ActorSet;
 
 import java.util.ArrayList;
 
@@ -76,24 +75,6 @@ public class CommandHandler extends AbstractActor {
 
 		buyerStatusReactor = getContext().actorOf(BuyerStatusReactor.props(), "buyerstatus-01");
 
-		//Some of these need to know about their siblings
-		ActorSet actorSet = new ActorSet();
-		actorSet.addActorRef("eventStore", eventStore);
-		actorSet.addActorRef("productHandler", productHandler);
-		actorSet.addActorRef("buyerHandler", buyerHandler);
-		actorSet.addActorRef("marketHandler", marketHandler);
-		actorSet.addActorRef("offerHandler", offerHandler);
-		
-		productHandler.tell(actorSet, getSelf());
-		buyerHandler.tell(actorSet, getSelf());
-		marketHandler.tell(actorSet, getSelf());
-		offerHandler.tell(actorSet, getSelf());
-
-		eventProjector.tell(actorSet, getSelf());
-		productPriceProjector.tell(actorSet, getSelf());
-		buyerStatusProjector.tell(actorSet, getSelf());
-
-		buyerStatusReactor.tell(actorSet, getSelf());
 	}
 
 	public static Props props() {
@@ -178,7 +159,7 @@ public class CommandHandler extends AbstractActor {
 				case "ShowPrice":
 				case "ShowPrices":
 					productPriceProjector.tell(new Command(head, tail), getSelf());
-					result = "Produce price projector command processed";
+					result = "Product price projector command processed";
 					break;
 				case "ShowStatus":
 				case "ShowStatuses":

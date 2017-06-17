@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import com.camas.event.AbstractEvent;
 import com.camas.domain.AbstractDomain;
 
-import com.camas.message.ActorSet;
 import com.camas.message.AggregateReq;
 import com.camas.message.Command;
 import com.camas.message.EventList;
@@ -16,6 +15,9 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorLogging;
 import akka.actor.Props;
 import akka.actor.ActorRef;
+import akka.actor.ActorNotFound;
+import akka.actor.ActorSelection;
+import akka.actor.ActorSystem;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.pattern.Patterns;
@@ -33,9 +35,10 @@ import java.util.Map;
 //AbstractHandler contains functions common to all command handlers
 public abstract class AbstractHandler extends AbstractActor {
 	final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+	
+	public static final Timeout TIMEOUT = new Timeout(100, TimeUnit.MILLISECONDS);
 
-	//In case we have to talk to a sibling
-	HashMap<String, ActorRef> actorRefs = new HashMap<>();
+	ActorRef eventStore;
 	
 	int highestId = 0;			//This maintains the highest id used for the specific aggregate
 	String name;				//The name of the command handler
@@ -53,6 +56,7 @@ public abstract class AbstractHandler extends AbstractActor {
 	@Override
 	public void preStart() {
 		log.info(name + " started");
+		eventStore = getSingleActorRefFromPath(getContext().getSystem(), "/user/command-handler/eventstore-01");
 		populate();
 	}
 
@@ -69,26 +73,14 @@ public abstract class AbstractHandler extends AbstractActor {
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-			.match(ActorSet.class, this::onActorSet)
 			.match(Command.class, this::onCommand)
 			.match(Status.class, this::onStatus)
 			.build();
 	}
 
-	//Identify the siblings
-	private void onActorSet(ActorSet set) {
-		
-	    Iterator it = set.getKeys().iterator();
-	     while (it.hasNext()) {
-	         String key = (String) it.next();
-			 actorRefs.put(key, set.getActorRef(key));
-	     }
-		
-	}
-
 	//Re-establish the highest used id
 	private void populate() {
-		EventList eventList = (EventList) request(actorRefs.get("eventStore"), new Read(createCommand, "ANY", 0));
+		EventList eventList = (EventList) request(eventStore, new Read(createCommand, "ANY", 0));
 		if (eventList != null) {
 			ArrayList<AbstractEvent> events = eventList.getEvents();
 			for (AbstractEvent event : events) {
@@ -100,6 +92,23 @@ public abstract class AbstractHandler extends AbstractActor {
 		}
 	}
 	
+	//Find an actor ref by path
+    ActorRef getSingleActorRefFromPath(ActorSystem system, String path) {
+ 
+        try {
+            // create an ActorSelection based on the path
+            ActorSelection sel = system.actorSelection(path);
+            // check if a single actor exists at the path
+            Future<ActorRef> fut = sel.resolveOne(TIMEOUT);
+            ActorRef ref = Await.result(fut, TIMEOUT.duration());
+            return ref;
+        } catch (ActorNotFound e) {
+            return null;
+        } catch (Exception e) {
+        	return null;
+        }
+    }
+
 	//A synchronous request to pick up info from a sibling
 	Object request(ActorRef requestee, Object request) {
 		Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
@@ -126,7 +135,7 @@ public abstract class AbstractHandler extends AbstractActor {
 	//Given an aggregate id, reconstruct it from past events, using a synchronous call to the event store
 	public void remake(AbstractDomain a, String id) {
 		Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
-		Future<Object> future = Patterns.ask(actorRefs.get("eventStore"), new Read("ANY", id, 0), timeout); 
+		Future<Object> future = Patterns.ask(eventStore, new Read("ANY", id, 0), timeout); 
 		EventList eventList;
 		try {
 			eventList = (EventList) Await.result(future, timeout.duration());

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import com.camas.domain.AbstractDomain;
 
-import com.camas.message.ActorSet;
 import com.camas.message.AggregateReq;
 import com.camas.message.Command;
 import com.camas.message.EventList;
@@ -15,6 +14,9 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorLogging;
 import akka.actor.Props;
 import akka.actor.ActorRef;
+import akka.actor.ActorNotFound;
+import akka.actor.ActorSelection;
+import akka.actor.ActorSystem;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.pattern.Patterns;
@@ -32,6 +34,8 @@ import java.util.ArrayList;
 //AbstractProjector contains elements common to projectors
 public abstract class AbstractProjector extends AbstractActor {
 	final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+
+	public static final Timeout TIMEOUT = new Timeout(100, TimeUnit.MILLISECONDS);
 
 	ActorRef eventStore;
 
@@ -57,6 +61,7 @@ public abstract class AbstractProjector extends AbstractActor {
 	@Override
 	public void preStart() {
 		log.info(name + " started");
+		eventStore = getSingleActorRefFromPath(getContext().getSystem(), "/user/command-handler/eventstore-01");
 		setTimer();
 	}
 
@@ -97,16 +102,29 @@ public abstract class AbstractProjector extends AbstractActor {
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-			.match(ActorSet.class, this::onActorSet)
 			.match(Command.class, this::onCommand)
 			.build();
 	}
 
-	private void onActorSet(ActorSet set) {
-		eventStore = set.getActorRef("eventStore");
-	}
-
 	//Needs override
 	abstract void onCommand(Command cmd);
+
+	//Find an actor ref by path
+    ActorRef getSingleActorRefFromPath(ActorSystem system, String path) {
+ 
+        try {
+            // create an ActorSelection based on the path
+            ActorSelection sel = system.actorSelection(path);
+            // check if a single actor exists at the path
+            Future<ActorRef> fut = sel.resolveOne(TIMEOUT);
+            ActorRef ref = Await.result(fut, TIMEOUT.duration());
+            return ref;
+        } catch (ActorNotFound e) {
+            return null;
+        } catch (Exception e) {
+        	return null;
+        }
+    }
+
 
 }

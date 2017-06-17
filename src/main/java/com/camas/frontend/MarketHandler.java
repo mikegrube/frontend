@@ -74,7 +74,7 @@ public class MarketHandler extends AbstractHandler {
 		boolean res = a.create(id, name, false);
 
 		if (res && nameIsUnique(name)) {
-			actorRefs.get("eventStore").tell(new Put(new MarketCreated(id, name)), getSelf());
+			eventStore.tell(new Put(new MarketCreated(id, name)), getSelf());
 		} else {
 			log.warning("Unable to create buyer " + id);
 		}
@@ -91,7 +91,7 @@ public class MarketHandler extends AbstractHandler {
 		remake(a, id);
 		boolean res = a.update(name, false);
 		if (res && nameIsUnique(name)) {
-			actorRefs.get("eventStore").tell(new Put(new MarketUpdated(id, name)), getSelf());
+			eventStore.tell(new Put(new MarketUpdated(id, name)), getSelf());
 		} else {
 			log.warning("Unable to update buyer " + id);
 		}
@@ -110,7 +110,7 @@ public class MarketHandler extends AbstractHandler {
 		remake(a, id);
 		boolean res = a.drop(false);
 		if (res && !inUse(id)) {
-			actorRefs.get("eventStore").tell(new Put(new MarketDropped(id)), getSelf());
+			eventStore.tell(new Put(new MarketDropped(id)), getSelf());
 		} else {
 			log.warning("Unable to drop buyer " + id);
 		}
