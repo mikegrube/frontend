@@ -84,7 +84,7 @@ public class ProductHandler extends AbstractHandler {
      boolean res = a.create(id, name, description, false);
      //Name must be unique
      if (res && nameIsUnique(name)) {
-			eventStore.tell(new Put(new ProductCreated(id, name, description)), getSelf());
+			actorRefs.get("eventStore").tell(new Put(new ProductCreated(id, name, description)), getSelf());
      } else {
         log.warning("Unable to create product " + id);
      }
@@ -103,7 +103,7 @@ public class ProductHandler extends AbstractHandler {
      //Name must be unique
      boolean res = a.update(name, description, false);
      if (res && nameIsUnique(name)) {
-			eventStore.tell(new Put(new ProductUpdated(id, name, description)), getSelf());
+			actorRefs.get("eventStore").tell(new Put(new ProductUpdated(id, name, description)), getSelf());
      } else {
         log.warning("Unable to create product " + id);
      }
@@ -115,7 +115,7 @@ public class ProductHandler extends AbstractHandler {
 	  remake(a, id);
      boolean res = a.adjustInventory(Integer.parseInt(amount), false);
      if (res) {
-			eventStore.tell(new Put(new ProductInventoryAdjusted(id, amount)), getSelf());
+			actorRefs.get("eventStore").tell(new Put(new ProductInventoryAdjusted(id, amount)), getSelf());
      } else {
         log.warning("Unable to update product " + id);
      }
@@ -127,7 +127,7 @@ public class ProductHandler extends AbstractHandler {
 	  remake(a, id);
      boolean res = a.updatePrice(Double.parseDouble(amount), false);
      if (res) {
-			eventStore.tell(new Put(new ProductPriceUpdated(id, amount)), getSelf());
+			actorRefs.get("eventStore").tell(new Put(new ProductPriceUpdated(id, amount)), getSelf());
       } else {  
         log.warning("Unable to update product price for " + id);
      }
@@ -145,7 +145,7 @@ public class ProductHandler extends AbstractHandler {
 	  remake(a, id);
      boolean res = a.drop(false);
      if (res && !inUse(id)) {
-		eventStore.tell(new Put(new ProductDropped(id)), getSelf());
+		actorRefs.get("eventStore").tell(new Put(new ProductDropped(id)), getSelf());
      } else {
         log.warning("Unable to drop product " + id);
      }

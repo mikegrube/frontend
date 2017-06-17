@@ -103,7 +103,7 @@ public abstract class AbstractProjector extends AbstractActor {
 	}
 
 	private void onActorSet(ActorSet set) {
-		eventStore = set.getEventStore();
+		eventStore = set.getActorRef("eventStore");
 	}
 
 	//Needs override

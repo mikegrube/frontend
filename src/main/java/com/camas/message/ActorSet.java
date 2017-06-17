@@ -2,39 +2,26 @@ package com.camas.message;
 
 import akka.actor.ActorRef;
 
+import java.util.HashMap;
+import java.util.Set;
+
 public class ActorSet {
-	ActorRef buyerRef;
-	ActorRef marketRef;
-	ActorRef offerRef;
-	ActorRef productRef;
-	ActorRef eventStore;
+
+	HashMap<String, ActorRef> actorRefs = new HashMap<>();
 	
-	public ActorSet(ActorRef buyerRef, ActorRef marketRef, ActorRef offerRef, ActorRef productRef, ActorRef eventStore) {
-		this.buyerRef = buyerRef;
-		this.marketRef = marketRef;
-		this.offerRef = offerRef;
-		this.productRef = productRef;
-		this.eventStore = eventStore;
+	public ActorSet() {
 	}
 	
-	public ActorRef getBuyerRef() {
-		return buyerRef;
+	public void addActorRef(String name, ActorRef actorRef) {
+		actorRefs.put(name, actorRef);
 	}
 
-	public ActorRef getMarketRef() {
-		return marketRef;
-	}
-
-	public ActorRef getOfferRef() {
-		return offerRef;
-	}
-
-	public ActorRef getProductRef() {
-		return productRef;
+	public ActorRef getActorRef(String name) {
+		return actorRefs.get(name);
 	}
 	
-	public ActorRef getEventStore() {
-		return eventStore;
+	public Set<String> getKeys() {
+		return actorRefs.keySet();
 	}
 
 }

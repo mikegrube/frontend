@@ -64,26 +64,35 @@ public class CommandHandler extends AbstractActor {
 	public CommandHandler() {
 		//Instantiate
 		eventStore = getContext().actorOf(EventStore.props(), "eventstore-01");
+
 		productHandler = getContext().actorOf(ProductHandler.props(), "product-01");
 		buyerHandler = getContext().actorOf(BuyerHandler.props(), "buyer-01");
 		marketHandler = getContext().actorOf(MarketHandler.props(), "market-01");
 		offerHandler = getContext().actorOf(OfferHandler.props(), "offer-01");
 
+		eventProjector = getContext().actorOf(EventProjector.props(), "eventProjector-01");
+		productPriceProjector = getContext().actorOf(ProductPriceProjector.props(), "productPriceProjector-01");
+		buyerStatusProjector = getContext().actorOf(BuyerStatusProjector.props(), "buyerStatusProjector-01");
+
+		buyerStatusReactor = getContext().actorOf(BuyerStatusReactor.props(), "buyerstatus-01");
+
 		//Some of these need to know about their siblings
-		ActorSet actorSet = new ActorSet(buyerHandler, marketHandler, offerHandler, productHandler, eventStore);
+		ActorSet actorSet = new ActorSet();
+		actorSet.addActorRef("eventStore", eventStore);
+		actorSet.addActorRef("productHandler", productHandler);
+		actorSet.addActorRef("buyerHandler", buyerHandler);
+		actorSet.addActorRef("marketHandler", marketHandler);
+		actorSet.addActorRef("offerHandler", offerHandler);
+		
 		productHandler.tell(actorSet, getSelf());
 		buyerHandler.tell(actorSet, getSelf());
 		marketHandler.tell(actorSet, getSelf());
 		offerHandler.tell(actorSet, getSelf());
 
-		eventProjector = getContext().actorOf(EventProjector.props(), "eventProjector-01");
 		eventProjector.tell(actorSet, getSelf());
-		productPriceProjector = getContext().actorOf(ProductPriceProjector.props(), "productPriceProjector-01");
 		productPriceProjector.tell(actorSet, getSelf());
-		buyerStatusProjector = getContext().actorOf(BuyerStatusProjector.props(), "buyerStatusProjector-01");
 		buyerStatusProjector.tell(actorSet, getSelf());
 
-		buyerStatusReactor = getContext().actorOf(BuyerStatusReactor.props(), "buyerstatus-01");
 		buyerStatusReactor.tell(actorSet, getSelf());
 	}
 

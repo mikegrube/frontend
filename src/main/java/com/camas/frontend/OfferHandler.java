@@ -101,7 +101,7 @@ public class OfferHandler extends AbstractHandler {
 		} else {
 			res = a.create(id, marketId, title, false);
 			if (res && titleIsUnique(title)) {
-				eventStore.tell(new Put(new OfferCreated(id, marketId, title)), getSelf());
+				actorRefs.get("eventStore").tell(new Put(new OfferCreated(id, marketId, title)), getSelf());
 			} else {
 				log.warning("Unable to create offer " + id);
 			}
@@ -110,12 +110,12 @@ public class OfferHandler extends AbstractHandler {
 	// CreateOffer,Amazon-6/11-6/18
 
 	private Market getMarket(String marketId) {
-		AggregateReq req = (AggregateReq) request(marketRef, new Status(marketId));
+		AggregateReq req = (AggregateReq) request(actorRefs.get("marketHandler"), new Status(marketId));
 		return (Market) req.getAggregate();
 	}
 
 	private Product getProduct(String productId) {
-		AggregateReq req = (AggregateReq) request(productRef, new Status(productId));
+		AggregateReq req = (AggregateReq) request(actorRefs.get("productHandler"), new Status(productId));
 		return (Product) req.getAggregate();
 	}
 
@@ -129,7 +129,7 @@ public class OfferHandler extends AbstractHandler {
 		remake(a, id);
 		boolean res = a.update(title, false);
 		if (res && titleIsUnique(title)) {
-			eventStore.tell(new Put(new OfferUpdated(id, title)), getSelf());
+			actorRefs.get("eventStore").tell(new Put(new OfferUpdated(id, title)), getSelf());
 		} else {
 			log.warning("Unable to update offer " + id);
 		}
@@ -147,7 +147,7 @@ public class OfferHandler extends AbstractHandler {
 		} else {
 			res = a.addProduct(productId, p.getInventory(), p.getPrice(), false);
 			if (res) {
-				eventStore.tell(new Put(new OfferProductAdded(id, productId, "" + p.getInventory(), "" + p.getPrice())), getSelf());
+				actorRefs.get("eventStore").tell(new Put(new OfferProductAdded(id, productId, "" + p.getInventory(), "" + p.getPrice())), getSelf());
 			} else {
 				log.warning("Product " + productId + " could not be added to " + id);
 			}
@@ -166,7 +166,7 @@ public class OfferHandler extends AbstractHandler {
 		} else {
 			res = a.removeProduct(productId, false);
 			if (res) {
-				eventStore.tell(new Put(new OfferProductRemoved(id, productId)), getSelf());
+				actorRefs.get("eventStore").tell(new Put(new OfferProductRemoved(id, productId)), getSelf());
 			} else {
 				log.warning("Product " + productId + " could not be removed from " + id);
 			}
@@ -185,7 +185,7 @@ public class OfferHandler extends AbstractHandler {
 		} else {
 			res = a.adjustProductInventory(productId, Integer.parseInt(amount), false);
 			if (res) {
-				eventStore.tell(new Put(new OfferProductInventoryAdjusted(id, productId, amount)), getSelf());
+				actorRefs.get("eventStore").tell(new Put(new OfferProductInventoryAdjusted(id, productId, amount)), getSelf());
 			} else {
 				log.warning("Unable to adjust product " + productId + " inventory on offer " + id);
 			}
@@ -204,7 +204,7 @@ public class OfferHandler extends AbstractHandler {
 		} else {
 			res = a.updateProductPrice(productId, Double.parseDouble(amount), false);
 			if (res) {
-				eventStore.tell(new Put(new OfferProductPriceUpdated(id, productId, amount)), getSelf());
+				actorRefs.get("eventStore").tell(new Put(new OfferProductPriceUpdated(id, productId, amount)), getSelf());
 			} else {
 				log.warning("Unable to update product " + productId + " price on offer " + id);
 			}
@@ -228,7 +228,7 @@ public class OfferHandler extends AbstractHandler {
 		//TODO: Any external reasons why we can't drop?
 		boolean res = a.drop(false);
 		if (res && !inUse(id)) {
-			eventStore.tell(new Put(new OfferDropped(id)), getSelf());
+			actorRefs.get("eventStore").tell(new Put(new OfferDropped(id)), getSelf());
 		} else {
 			log.warning("Unable to drop product " + id);
 		}
@@ -242,7 +242,7 @@ public class OfferHandler extends AbstractHandler {
 		int qty = -Integer.parseInt(quantity);
 		boolean res = a.adjustProductInventory(productId, qty, false);
 		if (res && p.adjustInventory(qty, false)) {
-			eventStore.tell(new Put(new ProductPurchased(id, productId, quantity, "" + op.getPrice(), buyerId)), getSelf());
+			actorRefs.get("eventStore").tell(new Put(new ProductPurchased(id, productId, quantity, "" + op.getPrice(), buyerId)), getSelf());
 		} else {
 			log.warning("Unable to purchase " + quantity + " of  product " + productId + " from offer " + id);
 		}

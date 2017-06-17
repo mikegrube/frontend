@@ -26,17 +26,16 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 //AbstractHandler contains functions common to all command handlers
 public abstract class AbstractHandler extends AbstractActor {
 	final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
 	//In case we have to talk to a sibling
-	ActorRef eventStore;
-	ActorRef buyerRef;
-	ActorRef marketRef;
-	ActorRef offerRef;
-	ActorRef productRef;
+	HashMap<String, ActorRef> actorRefs = new HashMap<>();
 	
 	int highestId = 0;			//This maintains the highest id used for the specific aggregate
 	String name;				//The name of the command handler
@@ -54,6 +53,7 @@ public abstract class AbstractHandler extends AbstractActor {
 	@Override
 	public void preStart() {
 		log.info(name + " started");
+		populate();
 	}
 
 	@Override
@@ -77,18 +77,18 @@ public abstract class AbstractHandler extends AbstractActor {
 
 	//Identify the siblings
 	private void onActorSet(ActorSet set) {
-		eventStore = set.getEventStore();
-		buyerRef = set.getBuyerRef();
-		marketRef = set.getMarketRef();
-		offerRef = set.getOfferRef();
-		productRef = set.getProductRef();
 		
-		populate();
+	    Iterator it = set.getKeys().iterator();
+	     while (it.hasNext()) {
+	         String key = (String) it.next();
+			 actorRefs.put(key, set.getActorRef(key));
+	     }
+		
 	}
 
 	//Re-establish the highest used id
 	private void populate() {
-		EventList eventList = (EventList) request(eventStore, new Read(createCommand, "ANY", 0));
+		EventList eventList = (EventList) request(actorRefs.get("eventStore"), new Read(createCommand, "ANY", 0));
 		if (eventList != null) {
 			ArrayList<AbstractEvent> events = eventList.getEvents();
 			for (AbstractEvent event : events) {
@@ -126,7 +126,7 @@ public abstract class AbstractHandler extends AbstractActor {
 	//Given an aggregate id, reconstruct it from past events, using a synchronous call to the event store
 	public void remake(AbstractDomain a, String id) {
 		Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
-		Future<Object> future = Patterns.ask(eventStore, new Read("ANY", id, 0), timeout); 
+		Future<Object> future = Patterns.ask(actorRefs.get("eventStore"), new Read("ANY", id, 0), timeout); 
 		EventList eventList;
 		try {
 			eventList = (EventList) Await.result(future, timeout.duration());

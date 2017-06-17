@@ -101,6 +101,6 @@ public abstract class AbstractReactor extends AbstractActor {
 	}
 
 	private void onActorSet(ActorSet set) {
-		eventStore = set.getEventStore();
+		eventStore = set.getActorRef("eventStore");
 	}
 }
